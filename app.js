@@ -19,8 +19,15 @@ function addMessage(text, user = false) {
   messages.append(bubble);
   messages.scrollTop = messages.scrollHeight;
 }
+function updateNavigation(section) {
+  for (const link of document.querySelectorAll('.nav-center a')) {
+    if (link.hash === '#' + section) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+}
 function openPath(path, updateHistory = true) {
   if (!workspace.open(path)) return false;
+  updateNavigation('paths');
   document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open');
   checkin.reset();
   pathSection.hidden = false; document.body.classList.add('path-open');
@@ -81,12 +88,13 @@ for (const [id, tab] of [['chat-to-journal', 'journal'], ['chat-to-task', 'tasks
   });
 }
 const checkin = initCheckin({
-  enter() { leavePath(); document.querySelector('#checkin').hidden = false; document.body.classList.add('checkin-open'); },
+  enter() { updateNavigation('checkin'); leavePath(); document.querySelector('#checkin').hidden = false; document.body.classList.add('checkin-open'); },
   exit() { document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open'); },
   navigate: openPath
 });
 function followLocation() {
   const path = location.hash.slice(1);
+  updateNavigation(path);
   if (path === 'checkin') checkin.open();
   else {
     document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open'); checkin.reset();
