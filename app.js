@@ -1,3 +1,4 @@
+import { initWorkspace } from './workspace.js';
 const dialog = document.querySelector('#chat-dialog');
 const help = document.querySelector('#help-dialog');
 const messages = document.querySelector('#chat-messages');
@@ -56,3 +57,14 @@ document.querySelector('#chat-form').addEventListener('submit', event => {
 for (const id of ['help-button', 'chat-help']) document.getElementById(id).addEventListener('click', () => help.showModal());
 document.querySelector('#close-help').addEventListener('click', () => help.close());
 document.querySelector('#year').textContent = new Date().getFullYear();
+
+const workspace = initWorkspace();
+for (const [id, tab] of [['chat-to-journal', 'journal'], ['chat-to-task', 'tasks']]) {
+  document.getElementById(id).addEventListener('click', () => {
+    const latest = [...messages.querySelectorAll('.user')].at(-1)?.textContent || '';
+    workspace.draft(activePath, tab, latest);
+    dialog.close();
+    document.getElementById('workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(tab === 'journal' ? 'journal-text' : 'task-text').focus({ preventScroll: true });
+  });
+}
