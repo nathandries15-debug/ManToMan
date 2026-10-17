@@ -6,9 +6,9 @@ const messages = document.querySelector('#chat-messages');
 const input = document.querySelector('#message');
 const suggestions = document.querySelector('#suggestions');
 const paths = {
-  support: { title: 'Get it off your chest.', greeting: 'You can start with whatever is taking up space today. This is a scripted demo, so I can offer reflection prompts, but I can’t understand your situation like a person or a live AI. What would you like to talk about?', prompts: ['I’ve been feeling overwhelmed', 'I’m finding it hard to open up', 'I need a moment to reset'] },
-  routine: { title: 'Build your next move.', greeting: 'Let’s look at one small part of your day. What does a typical day look like, and what would you like to make easier? Keep names and sensitive details out of this demo.', prompts: ['My mornings feel rushed', 'I struggle to stay consistent', 'Help me plan a small first step'] },
-  health: { title: 'Connect the dots.', greeting: 'What feels most out of balance: sleep, energy, food, or stress? Tell me what that looks like in your day. You can keep a focus in My needs and choose whether to include a local overview from your other paths. This scripted preview offers general prompts, not a health assessment.', prompts: ['I want to sleep better', 'I want to move more', 'I need time to recharge'] }
+  support: { title: 'Get it off your chest.', greeting: 'What’s been on your mind? Start anywhere—there’s no right way to say it.', prompts: ['I’ve been feeling overwhelmed', 'I’m finding it hard to open up', 'I need a moment to reset'] },
+  routine: { title: 'Build your next move.', greeting: 'What’s one thing you’d like to make easier in your day?', prompts: ['My mornings feel rushed', 'I struggle to stay consistent', 'Help me plan a small first step'] },
+  health: { title: 'Connect the dots.', greeting: 'What needs attention today: sleep, energy, food, or stress?', prompts: ['I want to sleep better', 'I want to move more', 'I need time to recharge'] }
 };
 let activePath = 'support';
 let turns = 0;
@@ -26,7 +26,8 @@ function openPath(path, updateHistory = true) {
   pathSection.hidden = false; document.body.classList.add('path-open');
   if (updateHistory) history.pushState(null, '', '#' + path);
   activePath = path; turns = 0;
-  document.querySelector('#chat-title').textContent = paths[path].title;
+  document.querySelector('.chat-save-actions').hidden = true;
+  document.querySelector('#chat-title').textContent = 'Conversation';
   messages.replaceChildren(); suggestions.replaceChildren(); input.value = '';
   addMessage(paths[path].greeting);
   for (const prompt of paths[path].prompts) {
@@ -61,11 +62,12 @@ document.querySelectorAll('[data-path]').forEach(button => button.addEventListen
 function leavePath() {
   pathSection.hidden = true; document.body.classList.remove('path-open');
   messages.replaceChildren(); input.value = ''; suggestions.replaceChildren();
+  document.querySelector('.chat-save-actions').hidden = true;
 }
 document.querySelector('#back-to-paths').addEventListener('click', () => { leavePath(); location.hash = 'paths'; document.getElementById('paths').scrollIntoView(); document.querySelector('.path-card').focus({ preventScroll: true }); });
 document.querySelector('#chat-form').addEventListener('submit', event => {
   event.preventDefault(); const text = input.value.trim(); if (!text) return;
-  addMessage(text, true); input.value = ''; turns++; suggestions.replaceChildren(); addMessage(reply(text)); input.focus();
+  addMessage(text, true); document.querySelector('.chat-save-actions').hidden = false; input.value = ''; turns++; suggestions.replaceChildren(); addMessage(reply(text)); input.focus();
 });
 for (const id of ['help-button', 'chat-help']) document.getElementById(id).addEventListener('click', () => help.showModal());
 document.querySelector('#close-help').addEventListener('click', () => help.close());

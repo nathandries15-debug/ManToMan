@@ -33,6 +33,9 @@ export function initWorkspace() {
       catch { status('Device storage is unavailable or full. Your changes are only in this tab. Export them to keep a copy.'); }
     } else status('Kept in this tab only. Closing or refreshing the page will remove unsaved entries.');
   }
+  const toolDialog = $('path-tools-dialog');
+  function openTools() { if (!toolDialog.open) toolDialog.showModal(); }
+  $('close-path-tools').addEventListener('click', () => toolDialog.close());
   function selectTab(next, focus = false) {
     tab = tools[path].includes(next) ? next : tools[path][0];
     for (const button of document.querySelectorAll('[data-tab]')) {
@@ -155,7 +158,7 @@ export function initWorkspace() {
     }
     const target = path === 'support' ? $('journal-text') : $('task-text');
     if (target.value.trim() && !confirm('Replace your unfinished draft with this prompt?')) return;
-    selectTab(path === 'support' ? 'journal' : 'tasks'); target.value = $('daily-prompt').textContent + '\n\n'; target.focus();
+    openTools(); selectTab(path === 'support' ? 'journal' : 'tasks'); target.value = $('daily-prompt').textContent + '\n\n'; target.focus();
   });
   $('remember-workspace').addEventListener('change', () => {
     if ($('remember-workspace').checked) persist();
@@ -195,7 +198,7 @@ export function initWorkspace() {
       overview.append(el('small', 'A local overview only. These counts cannot assess your mental or physical health.'));
     }
   }
-  $('path-tools-shortcut').addEventListener('click', () => { selectTab(tools[path][0], true); document.querySelector('.workspace-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('path-tools-shortcut').addEventListener('click', () => { openTools(); selectTab(tools[path][0], true); });
   $('needs-focus').value = data.healthNeeds?.focus || 'sleep';
   $('needs-goal').value = data.healthNeeds?.goal || '';
   $('needs-form').addEventListener('submit', event => {
@@ -213,6 +216,7 @@ export function initWorkspace() {
         for (const field of fields) field.value = '';
         path = nextPath; tab = tools[path][0];
       }
+      if (toolDialog.open) toolDialog.close();
       renderPath(); return true;
     },
     healthContext() {
@@ -225,7 +229,7 @@ export function initWorkspace() {
       if (!tools[path].includes(nextTab)) return false;
       const target = $(nextTab === 'journal' ? 'journal-text' : nextTab === 'calendar' ? 'event-title' : 'task-text');
       if (target.value.trim() && !confirm('Replace the unfinished draft?')) return false;
-      selectTab(nextTab); target.value = text.slice(0, nextTab === 'journal' ? 6000 : 200);
+      openTools(); selectTab(nextTab); target.value = text.slice(0, nextTab === 'journal' ? 6000 : 200);
       status('Draft only. Review and save it when you’re ready.'); target.focus(); return true;
     }
   };

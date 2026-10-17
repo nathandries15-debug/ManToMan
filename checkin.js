@@ -14,6 +14,7 @@ export function initCheckin({ enter, exit, navigate }) {
   function ask() {
     $('checkin-progress').textContent = `QUESTION ${step + 1} OF ${questions.length}`;
     $('checkin-progressbar').value = step;
+    $('checkin-messages').replaceChildren();
     bubble(questions[step].text); $('checkin-options').replaceChildren();
     for (const [text, choice] of questions[step].choices) {
       const button = make('button', text); button.type = 'button'; button.addEventListener('click', () => submit(text, choice)); $('checkin-options').append(button);
@@ -22,6 +23,7 @@ export function initCheckin({ enter, exit, navigate }) {
   function finish() {
     result = recommendPath(answers); $('checkin-form').hidden = true; $('checkin-options').replaceChildren(); $('checkin-result').hidden = false;
     $('checkin-progress').textContent = result.urgent ? 'HUMAN SUPPORT MATTERS' : 'YOUR STARTING POINT'; $('checkin-progressbar').value = 3;
+    $('checkin-messages').hidden = true;
     const panel = $('checkin-result'); panel.replaceChildren();
     if (result.urgent) {
       bubble('Some of what you shared may need immediate human support. This preview cannot assess your safety or provide emergency care.');
@@ -55,11 +57,13 @@ export function initCheckin({ enter, exit, navigate }) {
   function submit(text, choice = null) {
     text = text.trim().slice(0, 1500); if (!text || step >= questions.length || result) return;
     bubble(text, true); answers.push({ text, choice }); $('checkin-input').value = '';
+    $('checkin-history').hidden = false;
+    const entry = make('p', text); $('checkin-history-list').append(entry);
     if (urgentLanguage(text)) { finish(); return; }
     step++; if (step === questions.length) finish(); else ask();
   }
   function reset() {
-    answers = []; step = 0; result = null; $('checkin-messages').replaceChildren(); $('checkin-options').replaceChildren(); $('checkin-result').replaceChildren(); $('checkin-result').hidden = true; $('checkin-form').hidden = false; $('checkin-input').value = '';
+    answers = []; step = 0; result = null; $('checkin-history-list').replaceChildren(); $('checkin-history').hidden = true; $('checkin-history').open = false; $('checkin-messages').hidden = false; $('checkin-messages').replaceChildren(); $('checkin-options').replaceChildren(); $('checkin-result').replaceChildren(); $('checkin-result').hidden = true; $('checkin-form').hidden = false; $('checkin-input').value = '';
   }
   function open(seed) {
     enter(); reset(); ask();
