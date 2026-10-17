@@ -1,3 +1,4 @@
+import { initCheckin } from './checkin.js';
 import { initWorkspace } from './workspace.js';
 const pathSection = document.querySelector('#workspace');
 const help = document.querySelector('#help-dialog');
@@ -20,6 +21,8 @@ function addMessage(text, user = false) {
 }
 function openPath(path, updateHistory = true) {
   if (!workspace.open(path)) return false;
+  document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open');
+  checkin.reset();
   pathSection.hidden = false; document.body.classList.add('path-open');
   if (updateHistory) history.pushState(null, '', '#' + path);
   activePath = path; turns = 0;
@@ -75,9 +78,18 @@ for (const [id, tab] of [['chat-to-journal', 'journal'], ['chat-to-task', 'tasks
     workspace.draft(tab, latest);
   });
 }
+const checkin = initCheckin({
+  enter() { leavePath(); document.querySelector('#checkin').hidden = false; document.body.classList.add('checkin-open'); },
+  exit() { document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open'); },
+  navigate: openPath
+});
 function followLocation() {
   const path = location.hash.slice(1);
-  if (paths[path]) openPath(path, false); else leavePath();
+  if (path === 'checkin') checkin.open();
+  else {
+    document.querySelector('#checkin').hidden = true; document.body.classList.remove('checkin-open'); checkin.reset();
+    if (paths[path]) openPath(path, false); else leavePath();
+  }
 }
 window.addEventListener('hashchange', followLocation);
 followLocation();

@@ -23,3 +23,7 @@ Before offering a real AI service, add server-side provider integration, validat
 ## Vercel
 
 This prototype is a static site. The included `vercel.json` selects `npm run build` and the `dist` output directory. Import the repository into Vercel with the repository root as the Root Directory and framework set to Other. Remove conflicting build/output overrides in the Vercel project settings, then redeploy after the source files are pushed to GitHub. No environment variables are required for the demo. `npm start` is for local development, not the Vercel deployment.
+
+## Guided starting-point check-in
+
+The homepage entry points and “Let’s make some room” CTA open a three-question conversational check-in. Explicit preferences outweigh simple keyword signals, ambiguous answers offer choices, and the result explains why a path was suggested. This is not live AI or a clinical assessment. Recognized urgent language shows human support information instead of a routine recommendation; keyword matching cannot reliably assess safety. Answers remain in memory only and clear when leaving. An unchecked-by-default control can copy the first answer into an editable chat draft. No automatic submission or journal saving occurs.
