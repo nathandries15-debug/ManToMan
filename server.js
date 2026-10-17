@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-const assets = { '/checkin.js': ['checkin.js', 'text/javascript'], '/checkin-model.js': ['checkin-model.js', 'text/javascript'], '/': ['index.html', 'text/html'], '/style.css': ['style.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'], '/workspace.js': ['workspace.js', 'text/javascript'], '/workspace-model.js': ['workspace-model.js', 'text/javascript'] };
+const assets = { '/conversation-model.js': ['conversation-model.js', 'text/javascript'], '/voice.js': ['voice.js', 'text/javascript'], '/checkin.js': ['checkin.js', 'text/javascript'], '/checkin-model.js': ['checkin-model.js', 'text/javascript'], '/': ['index.html', 'text/html'], '/style.css': ['style.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'], '/workspace.js': ['workspace.js', 'text/javascript'], '/workspace-model.js': ['workspace-model.js', 'text/javascript'] };
 export const server = http.createServer(async (req, res) => {
   const asset = assets[new URL(req.url, 'http://localhost').pathname];
   if (!asset) { res.writeHead(404); res.end('Not found'); return; }

@@ -11,7 +11,7 @@ test('serves the experience and rejects unknown routes', async () => {
     for (const path of ['support', 'routine', 'health']) assert.ok(html.includes(`data-path="${path}"`));
     assert.ok(html.includes('SCRIPTED DEMO'));
     assert.ok(html.includes('findahelpline.com'));
-    for (const file of ['/app.js', '/style.css', '/workspace.js', '/workspace-model.js', '/checkin.js', '/checkin-model.js']) assert.equal((await fetch(base + file)).status, 200);
+    for (const file of ['/app.js', '/style.css', '/workspace.js', '/workspace-model.js', '/checkin.js', '/checkin-model.js', '/conversation-model.js', '/voice.js']) assert.equal((await fetch(base + file)).status, 200);
     assert.equal((await fetch(base + '/package.json')).status, 404);
     assert.equal((await fetch(base + '/missing')).status, 404);
   } finally { await new Promise(resolve => server.close(resolve)); }

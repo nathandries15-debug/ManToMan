@@ -31,3 +31,9 @@ The homepage entry points and “Let’s make some room” CTA open a three-ques
 ## Account and upgrade previews
 
 The header contains Sign in and Upgrade previews. Sign in validates an email locally, then explains that no email was sent or account created; it clears the field and makes no network request. Plus describes proposed features and a sample weekly reflection, with no payment or entitlements implemented. Actual authentication and subscriptions require backend/provider setup. See PRODUCT_NOTES.md for the feature split, pricing hypotheses, and activation requirements.
+
+## Conversation modes, closing, and voice
+
+Listen (the default) offers space to share without planning advice; Reflect offers a thought/feeling prompt; Plan offers a small practical step. All replies remain scripted, with recognized urgent language routed to human-support information before mode-specific responses. Wrap up opens an optional user-written takeaway; users can download it, draft it into the current path’s journal/task list where available, keep chatting, or finish and clear the conversation. Nothing is summarized or saved automatically.
+
+Voice uses browser SpeechSynthesis, with manual replay/stop and an off-by-default automatic read-aloud switch. If SpeechRecognition is supported, users can explicitly enable microphone dictation, then start it and grant browser permission. Dictation fills a draft without sending. Browser/device speech providers may process reply text or microphone audio; the site provides no speech backend and stores no recordings. Voice and microphone consent reset when leaving a path. Playback/capture stop on navigation, page hiding, and dialog opening. Support and installed voices vary by browser and device; text chat remains usable when unavailable. Actual speech quality/audibility must be checked on the intended devices.
