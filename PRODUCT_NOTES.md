@@ -31,3 +31,17 @@ Test a simple $6–$9/month plan for an early low-cost model offering, only afte
 4. Actual pricing, terms/privacy information, support contact, and tests for account isolation and subscription lifecycle. Account and billing providers may offer free starting tiers, but AI, email delivery, hosting, and payment processing may incur fees.
 
 Start with real accounts and cloud sync, then add Plus after the core conversational experience is useful enough to retain users. AI memory should be off by default and easy to inspect. Personal reflections should not be used to pressure people to upgrade.
+
+## A more supportive conversation experience
+
+The next priority is real conversational capability and evaluation, rather than styling it as therapy. Keep the AI identity visible; only describe an offering as therapy when actual qualified professionals provide that service.
+
+- Begin with a choice: listen, help untangle a thought, or make a plan. Ask one question at a time; do not automatically turn every difficult feeling into productivity advice.
+- Reflect back what was heard and ask whether it fits before interpreting or suggesting steps. Avoid canned reassurance, diagnoses, and telling users what they feel.
+- Offer an optional session shape: brief check-in, one chosen topic, reflection or exercise, then a user-reviewed takeaway. Do not impose homework or streaks.
+- Offer clinician-reviewed exercises such as grounding, emotion naming, and thought-record prompts with opt-in pacing. Explain limitations and evaluate model behavior with qualified reviewers before a mental-health launch.
+- Build continuity only through memories users explicitly choose to save, inspect, correct, and delete. Do not infer clinical conditions from journals or present automated summaries as facts.
+- Support connection with people: a draft message to a trusted person, information on finding a professional, or an export the user can choose to share. If adding actual therapy, integrate qualified professionals rather than impersonating one.
+- Keep urgent human support easy to access and improve safety evaluation beyond the current keyword matcher. No implication that the app monitors users or can guarantee safety.
+
+For the next prototype, prioritize the conversation-mode choice and an optional end-of-session reflection. Real AI, authenticated continuity, and reviewed mental-health behavior remain prerequisites for a credible live support offering.
