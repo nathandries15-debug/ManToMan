@@ -18,6 +18,9 @@ const $ = id => document.getElementById(id);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 export function initWorkspace() {
   let data = emptyWorkspace(), path = 'support', tab = 'journal', month = new Date();
+  const tools = { support: ['journal', 'resources'], routine: ['calendar', 'tasks', 'resources'], health: ['needs', 'resources'] };
+  const headings = { support: ['01 / YOUR HEADSPACE', 'Get it off your chest.', 'Talk it through. Your journal is right here when something is worth keeping.'], routine: ['02 / YOUR DIRECTION', 'Build your next move.', 'Chat through your goals, then put them on your calendar or next-step list.'], health: ['03 / YOUR FOUNDATION', 'Connect the dots.', 'Understand what your body needs, alongside your headspace and your habits.'] };
+
   month.setDate(1);
   function status(text) { $('workspace-status').textContent = text; }
   try {
@@ -31,7 +34,7 @@ export function initWorkspace() {
     } else status('Kept in this tab only. Closing or refreshing the page will remove unsaved entries.');
   }
   function selectTab(next, focus = false) {
-    tab = next;
+    tab = tools[path].includes(next) ? next : tools[path][0];
     for (const button of document.querySelectorAll('[data-tab]')) {
       const active = button.dataset.tab === tab;
       button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1;
@@ -42,10 +45,10 @@ export function initWorkspace() {
   document.querySelectorAll('[data-tab]').forEach(button => {
     button.addEventListener('click', () => selectTab(button.dataset.tab));
     button.addEventListener('keydown', event => {
-      const tabs = ['journal', 'tasks', 'calendar', 'resources']; let index = tabs.indexOf(tab);
+      const tabs = tools[path]; let index = tabs.indexOf(tab);
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault();
-      index = event.key === 'Home' ? 0 : event.key === 'End' ? 3 : (index + (event.key === 'ArrowRight' ? 1 : -1) + 4) % 4;
+      index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
       selectTab(tabs[index], true);
     });
   });
@@ -103,7 +106,15 @@ export function initWorkspace() {
     }
   }
   function renderPath() {
-    for (const button of document.querySelectorAll('[data-workspace-path]')) button.setAttribute('aria-pressed', String(button.dataset.workspacePath === path));
+    const [label, pathTitle, description] = headings[path];
+    $('path-label').textContent = label; $('path-title').textContent = pathTitle; $('path-description').textContent = description;
+    for (const button of document.querySelectorAll('[data-tab]')) button.hidden = !tools[path].includes(button.dataset.tab);
+    selectTab(tools[path].includes(tab) ? tab : tools[path][0]);
+    $('path-tools-shortcut').textContent = path === 'support' ? 'Open my journal →' : path === 'routine' ? 'Open calendar & next steps →' : 'Review my needs →';
+    $('chat-to-journal').hidden = path !== 'support';
+    $('chat-to-task').hidden = path !== 'routine';
+    $('chat-to-calendar').hidden = path !== 'routine';
+    $('daily-reflect').textContent = path === 'support' ? 'Write about this +' : path === 'routine' ? 'Make a small plan +' : 'Talk about this +';
     const day = Math.floor(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) / 86400000);
     const [title, note, prompt] = content[path].notes[day % content[path].notes.length];
     $('daily-date').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
@@ -115,13 +126,8 @@ export function initWorkspace() {
       link.append(el('h4', title + ' ↗'), el('p', description), el('small', 'EXTERNAL RESOURCE · OPENS A NEW TAB')); $('resource-list').append(link);
     }
     renderLists();
+    renderNeeds();
   }
-  document.querySelectorAll('[data-workspace-path]').forEach(button => button.addEventListener('click', () => {
-    if (path === button.dataset.workspacePath) return;
-    if ([$('journal-text'), $('task-text'), $('event-title')].some(x => x.value.trim()) && !confirm('Switch paths and discard unfinished drafts? Saved entries will stay.')) return;
-    for (const id of ['journal-text', 'task-text', 'event-title']) $(id).value = '';
-    path = button.dataset.workspacePath; renderPath();
-  }));
   $('journal-form').addEventListener('submit', event => {
     event.preventDefault(); const text = $('journal-text').value.trim(); if (!text) return;
     data.journals.push({ id: crypto.randomUUID(), path, text, date: localDate(), mood: $('journal-mood').value });
@@ -143,8 +149,13 @@ export function initWorkspace() {
   });
   for (const [id, step] of [['previous-month', -1], ['next-month', 1]]) $(id).addEventListener('click', () => { month.setMonth(month.getMonth() + step); renderLists(); });
   $('daily-reflect').addEventListener('click', () => {
-    if ($('journal-text').value.trim() && !confirm('Replace your unfinished reflection with this prompt?')) return;
-    selectTab('journal'); $('journal-text').value = $('daily-prompt').textContent + '\n\n'; $('journal-text').focus();
+    if (path === 'health') {
+      $('message').value = $('daily-prompt').textContent;
+      $('message').focus(); return;
+    }
+    const target = path === 'support' ? $('journal-text') : $('task-text');
+    if (target.value.trim() && !confirm('Replace your unfinished draft with this prompt?')) return;
+    selectTab(path === 'support' ? 'journal' : 'tasks'); target.value = $('daily-prompt').textContent + '\n\n'; target.focus();
   });
   $('remember-workspace').addEventListener('change', () => {
     if ($('remember-workspace').checked) persist();
@@ -160,19 +171,62 @@ export function initWorkspace() {
     data = emptyWorkspace();
     for (const id of ['journal-form', 'task-form', 'event-form']) $(id).reset();
     $('event-date').value = localDate();
+    $('needs-form').reset(); $('share-path-context').checked = false; renderNeeds();
     try { localStorage.removeItem(KEY); $('remember-workspace').checked = false; status('All workspace entries and drafts cleared.'); }
     catch { status('Entries cleared from this tab, but device storage could not be removed. Clear this site’s data in browser settings.'); }
     renderLists();
   });
+  const needsSuggestions = {
+    sleep: ['Make recovery easier to protect.', 'Think about what gets in the way of rest: a busy schedule, stress, or your evening routine. Try one manageable wind-down cue. Ongoing sleep problems deserve a conversation with a qualified clinician.'],
+    energy: ['Start with capacity, not pressure.', 'Notice when you have energy and when you need a break. Consider a short, comfortable movement break. Persistent or unexplained fatigue is worth discussing with a healthcare professional.'],
+    food: ['Make nourishment practical.', 'What is an easy meal that fits your budget, preferences, and schedule? Pick a repeatable option. Use the recipe shelf for ideas; a qualified professional can help with individual dietary needs.'],
+    stress: ['Give your headspace some room.', 'Consider what is adding pressure, what can wait, and who you can talk to. Use emotional support to reflect, then self-improvement to make a little space in your week.']
+  };
+  function renderNeeds() {
+    const focus = data.healthNeeds?.focus || 'sleep';
+    const [title, description] = needsSuggestions[focus];
+    $('needs-plan').replaceChildren(el('h4', title), el('p', description), el('small', 'GENERAL EDITORIAL SUGGESTION · NOT A HEALTH ASSESSMENT'));
+    const overview = $('health-context-summary'); overview.replaceChildren();
+    if ($('share-path-context').checked) {
+      const journals = data.journals.filter(x => x.path === 'support');
+      const latest = journals.at(-1);
+      const tasks = data.tasks.filter(x => x.path === 'routine' && !x.done);
+      overview.append(el('p', `${journals.length} emotional-support reflection${journals.length === 1 ? '' : 's'}. ${latest ? 'Latest check-in: ' + latest.mood + '.' : 'No saved check-in yet.'} ${tasks.length} unfinished self-improvement step${tasks.length === 1 ? '' : 's'}.`));
+      overview.append(el('small', 'A local overview only. These counts cannot assess your mental or physical health.'));
+    }
+  }
+  $('path-tools-shortcut').addEventListener('click', () => { selectTab(tools[path][0], true); document.querySelector('.workspace-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('needs-focus').value = data.healthNeeds?.focus || 'sleep';
+  $('needs-goal').value = data.healthNeeds?.goal || '';
+  $('needs-form').addEventListener('submit', event => {
+    event.preventDefault(); data.healthNeeds = { focus: $('needs-focus').value, goal: $('needs-goal').value.trim() };
+    persist(); renderNeeds();
+  });
+  $('share-path-context').addEventListener('change', renderNeeds);
   renderPath();
-  return { draft(nextPath, nextTab, text) {
-    const target = nextTab === 'journal' ? $('journal-text') : $('task-text');
-    const fields = [$('journal-text'), $('task-text'), $('event-title')];
-    const switching = nextPath !== path;
-    if ((target.value.trim() || (switching && fields.some(field => field.value.trim()))) && !confirm('Replace unfinished drafts? Saved entries will stay.')) return;
-    if (switching) for (const field of fields) field.value = '';
-    path = nextPath; renderPath(); selectTab(nextTab);
-    target.value = text.slice(0, nextTab === 'journal' ? 6000 : 200);
-    status('Draft only. Review and save it when you’re ready.');
-  } };
+  return {
+    open(nextPath) {
+      if (!headings[nextPath]) return false;
+      if (path !== nextPath) {
+        const fields = [$('journal-text'), $('task-text'), $('event-title')];
+        if (fields.some(field => field.value.trim()) && !confirm('Switch paths and discard unfinished journal or plan drafts? Saved entries will stay.')) return false;
+        for (const field of fields) field.value = '';
+        path = nextPath; tab = tools[path][0];
+      }
+      renderPath(); return true;
+    },
+    healthContext() {
+      const goal = data.healthNeeds?.goal;
+      const focus = data.healthNeeds?.focus;
+      const summary = $('share-path-context').checked ? $('health-context-summary').textContent : '';
+      return { goal, focus, summary };
+    },
+    draft(nextTab, text) {
+      if (!tools[path].includes(nextTab)) return false;
+      const target = $(nextTab === 'journal' ? 'journal-text' : nextTab === 'calendar' ? 'event-title' : 'task-text');
+      if (target.value.trim() && !confirm('Replace the unfinished draft?')) return false;
+      selectTab(nextTab); target.value = text.slice(0, nextTab === 'journal' ? 6000 : 200);
+      status('Draft only. Review and save it when you’re ready.'); target.focus(); return true;
+    }
+  };
 }

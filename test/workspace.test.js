@@ -24,3 +24,11 @@ test('date keys use local calendar dates and validate real dates', () => {
   assert.equal(validDate('2024-02-29'), true);
   for (const value of ['2025-02-29', '2026-13-01', 'not-a-date']) assert.equal(validDate(value), false);
 });
+test('health needs survive restore without requiring cross-path access', () => {
+  const restored = parseWorkspace(JSON.stringify({healthNeeds: {focus: 'stress', goal: 'Less stress after work'}}));
+  assert.deepEqual(restored.healthNeeds, {focus: 'stress', goal: 'Less stress after work'});
+  assert.deepEqual(restored.journals, []);
+  assert.equal(parseWorkspace(JSON.stringify({healthNeeds: {focus: 'diagnose', goal: 'invalid'}})).healthNeeds, null);
+  const legacy = parseWorkspace(JSON.stringify({journals: [], tasks: [], events: []}));
+  assert.equal(legacy.healthNeeds, null);
+});

@@ -1,13 +1,13 @@
 import { initWorkspace } from './workspace.js';
-const dialog = document.querySelector('#chat-dialog');
+const pathSection = document.querySelector('#workspace');
 const help = document.querySelector('#help-dialog');
 const messages = document.querySelector('#chat-messages');
 const input = document.querySelector('#message');
 const suggestions = document.querySelector('#suggestions');
 const paths = {
-  support: { title: 'Talk it through.', greeting: 'You can start with whatever is taking up space today. This is a scripted demo, so I can offer reflection prompts, but I can’t understand your situation like a person or a live AI. What would you like to talk about?', prompts: ['I’ve been feeling overwhelmed', 'I’m finding it hard to open up', 'I need a moment to reset'] },
-  routine: { title: 'Find your rhythm.', greeting: 'Let’s look at one small part of your day. What does a typical day look like, and what would you like to make easier? Keep names and sensitive details out of this demo.', prompts: ['My mornings feel rushed', 'I struggle to stay consistent', 'Help me plan a small first step'] },
-  health: { title: 'Feel more like you.', greeting: 'What would you like to give more attention to: sleep, movement, or making time for yourself? I can share general wellness ideas, but can’t diagnose symptoms or give personalized medical advice.', prompts: ['I want to sleep better', 'I want to move more', 'I need time to recharge'] }
+  support: { title: 'Get it off your chest.', greeting: 'You can start with whatever is taking up space today. This is a scripted demo, so I can offer reflection prompts, but I can’t understand your situation like a person or a live AI. What would you like to talk about?', prompts: ['I’ve been feeling overwhelmed', 'I’m finding it hard to open up', 'I need a moment to reset'] },
+  routine: { title: 'Build your next move.', greeting: 'Let’s look at one small part of your day. What does a typical day look like, and what would you like to make easier? Keep names and sensitive details out of this demo.', prompts: ['My mornings feel rushed', 'I struggle to stay consistent', 'Help me plan a small first step'] },
+  health: { title: 'Connect the dots.', greeting: 'What feels most out of balance: sleep, energy, food, or stress? Tell me what that looks like in your day. You can keep a focus in My needs and choose whether to include a local overview from your other paths. This scripted preview offers general prompts, not a health assessment.', prompts: ['I want to sleep better', 'I want to move more', 'I need time to recharge'] }
 };
 let activePath = 'support';
 let turns = 0;
@@ -18,7 +18,10 @@ function addMessage(text, user = false) {
   messages.append(bubble);
   messages.scrollTop = messages.scrollHeight;
 }
-function openPath(path) {
+function openPath(path, updateHistory = true) {
+  if (!workspace.open(path)) return false;
+  pathSection.hidden = false; document.body.classList.add('path-open');
+  if (updateHistory) history.pushState(null, '', '#' + path);
   activePath = path; turns = 0;
   document.querySelector('#chat-title').textContent = paths[path].title;
   messages.replaceChildren(); suggestions.replaceChildren(); input.value = '';
@@ -29,7 +32,9 @@ function openPath(path) {
     button.addEventListener('click', () => { input.value = prompt; document.querySelector('#chat-form').requestSubmit(); });
     suggestions.append(button);
   }
-  dialog.showModal();
+  document.querySelector('#chat-title').focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  return true;
 }
 function reply(text) {
   if (/suicid|self[- ]?harm|kill myself|end my life|hurt myself|hurt someone|kill someone|don't want to live|do not want to live/i.test(text)) {
@@ -42,14 +47,19 @@ function reply(text) {
   }
   if (activePath === 'health') {
     if (/sleep|tired|bed/i.test(text)) return 'One general place to start is a consistent wake-up time and a short wind-down routine. Notice whether late caffeine or scrolling affects your rest. Persistent tiredness, sleep problems, or breathing changes during sleep are worth discussing with a healthcare professional. What does the hour before bed usually look like?';
+    const context = workspace.healthContext();
+    if (context.focus || context.goal || context.summary) return `Your saved focus is ${context.focus || 'your everyday health'}${context.goal ? ': “' + context.goal + '”' : '.'} ${context.summary ? 'You’ve chosen to include this local overview: ' + context.summary : ''} This scripted prompt cannot assess your needs. What is getting in the way most: how you’re feeling, your schedule, or something physical? For symptoms or individual health advice, talk with a qualified clinician.`;
     return turns === 1 ? 'A small amount of comfortable movement can be a useful starting point, such as a brief walk or a gentle stretch. Work within your abilities, and seek medical guidance if symptoms or a health condition affect activity. What kind of movement or rest do you actually enjoy?' : 'Choose one manageable action and check how you feel afterward, without treating a missed day as failure. For persistent symptoms or personalized health recommendations, a qualified clinician is the right next step. What support would help you follow through?';
   }
   if (/open up|lonely|alone/i.test(text)) return 'Opening up can feel exposing. You could start with someone you trust and a simple line: “I’ve had a lot on my mind. Do you have a few minutes to listen?” You get to choose how much to share. What makes reaching out feel difficult?';
   return turns === 1 ? 'Thanks for putting that into words. Before trying to solve it, you might separate what happened, what you’re feeling, and what you need right now. Would listening, a practical next step, or support from someone you trust feel most useful?' : turns === 2 ? 'A reflection prompt: what part is within your control today, and what part are you carrying that you can’t change right now? Pick one small thing that might make the next hour easier. If this has been weighing on you for a while, consider talking with a qualified mental health professional.' : 'This demo has limited scripted prompts and cannot follow the full detail of your experience. You could write down what you want someone to understand and use it to start a conversation with a trusted person or mental health professional. What would you want them to hear?';
 }
 document.querySelectorAll('[data-path]').forEach(button => button.addEventListener('click', () => openPath(button.dataset.path)));
-document.querySelector('#close-chat').addEventListener('click', () => dialog.close());
-dialog.addEventListener('close', () => { messages.replaceChildren(); input.value = ''; suggestions.replaceChildren(); });
+function leavePath() {
+  pathSection.hidden = true; document.body.classList.remove('path-open');
+  messages.replaceChildren(); input.value = ''; suggestions.replaceChildren();
+}
+document.querySelector('#back-to-paths').addEventListener('click', () => { leavePath(); location.hash = 'paths'; document.getElementById('paths').scrollIntoView(); document.querySelector('.path-card').focus({ preventScroll: true }); });
 document.querySelector('#chat-form').addEventListener('submit', event => {
   event.preventDefault(); const text = input.value.trim(); if (!text) return;
   addMessage(text, true); input.value = ''; turns++; suggestions.replaceChildren(); addMessage(reply(text)); input.focus();
@@ -59,12 +69,15 @@ document.querySelector('#close-help').addEventListener('click', () => help.close
 document.querySelector('#year').textContent = new Date().getFullYear();
 
 const workspace = initWorkspace();
-for (const [id, tab] of [['chat-to-journal', 'journal'], ['chat-to-task', 'tasks']]) {
+for (const [id, tab] of [['chat-to-journal', 'journal'], ['chat-to-task', 'tasks'], ['chat-to-calendar', 'calendar']]) {
   document.getElementById(id).addEventListener('click', () => {
     const latest = [...messages.querySelectorAll('.user')].at(-1)?.textContent || '';
-    workspace.draft(activePath, tab, latest);
-    dialog.close();
-    document.getElementById('workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById(tab === 'journal' ? 'journal-text' : 'task-text').focus({ preventScroll: true });
+    workspace.draft(tab, latest);
   });
 }
+function followLocation() {
+  const path = location.hash.slice(1);
+  if (paths[path]) openPath(path, false); else leavePath();
+}
+window.addEventListener('hashchange', followLocation);
+followLocation();

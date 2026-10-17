@@ -9,7 +9,7 @@ test('serves the experience and rejects unknown routes', async () => {
     assert.equal(page.status, 200);
     const html = await page.text();
     for (const path of ['support', 'routine', 'health']) assert.ok(html.includes(`data-path="${path}"`));
-    assert.ok(html.includes('Scripted responses'));
+    assert.ok(html.includes('SCRIPTED DEMO'));
     assert.ok(html.includes('findahelpline.com'));
     for (const file of ['/app.js', '/style.css', '/workspace.js', '/workspace-model.js']) assert.equal((await fetch(base + file)).status, 200);
     assert.equal((await fetch(base + '/package.json')).status, 404);
