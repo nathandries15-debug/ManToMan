@@ -95,3 +95,21 @@ function followLocation() {
 }
 window.addEventListener('hashchange', followLocation);
 followLocation();
+
+// Account and plan previews intentionally make no network requests or billing changes.
+const signinDialog = document.getElementById('signin-dialog');
+const upgradeDialog = document.getElementById('upgrade-dialog');
+document.getElementById('sign-in-button').addEventListener('click', () => signinDialog.showModal());
+document.getElementById('upgrade-button').addEventListener('click', () => upgradeDialog.showModal());
+for (const id of ['close-signin', 'continue-guest']) document.getElementById(id).addEventListener('click', () => signinDialog.close());
+for (const id of ['close-upgrade', 'close-plus-explore']) document.getElementById(id).addEventListener('click', () => upgradeDialog.close());
+document.getElementById('signin-form').addEventListener('submit', event => {
+  event.preventDefault();
+  document.getElementById('signin-status').textContent = 'Preview complete. In the live version, a secure email link would let you sign in. No email was sent and no account was created.';
+  document.getElementById('signin-email').value = '';
+});
+signinDialog.addEventListener('close', () => {
+  document.getElementById('signin-form').reset();
+  document.getElementById('signin-status').textContent = '';
+});
+upgradeDialog.addEventListener('close', () => { document.querySelector('.plus-sample').open = false; });

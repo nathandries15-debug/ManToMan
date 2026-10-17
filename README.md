@@ -27,3 +27,7 @@ This prototype is a static site. The included `vercel.json` selects `npm run bui
 ## Guided starting-point check-in
 
 The homepage entry points and “Let’s make some room” CTA open a three-question conversational check-in, showing one question at a time with prior answers in an expandable history. Explicit preferences outweigh simple keyword signals, ambiguous answers offer choices, and the result explains why a path was suggested. This is not live AI or a clinical assessment. Recognized urgent language shows human support information instead of a routine recommendation; keyword matching cannot reliably assess safety. Answers remain in memory only and clear when leaving. An unchecked-by-default control can copy the first answer into an editable chat draft. No automatic submission or journal saving occurs.
+
+## Account and upgrade previews
+
+The header contains Sign in and Upgrade previews. Sign in validates an email locally, then explains that no email was sent or account created; it clears the field and makes no network request. Plus describes proposed features and a sample weekly reflection, with no payment or entitlements implemented. Actual authentication and subscriptions require backend/provider setup. See PRODUCT_NOTES.md for the feature split, pricing hypotheses, and activation requirements.
